@@ -1,0 +1,21 @@
+{
+  "name": "trung-tam-gia-su-be",
+  "version": "1.0.0",
+  "main": "server.js",
+  "author": "PvP Nguyen Phat",
+  "license": "ISC",
+  "description": "",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.4",
+    "mysql": "^2.18.1",
+    "striptags": "^3.2.0"
+  }
+}
