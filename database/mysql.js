@@ -15,4 +15,8 @@ let mysqlConn = mysql.createPool({
 let i = 0;
 console.log("mysqlConn called:", ++i);
 
+mysqlConn.getConnection((err) => {
+  if (err) console.log(err);
+});
+
 module.exports = mysqlConn;

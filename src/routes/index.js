@@ -1,5 +1,6 @@
 "use strict";
 const express = require("express");
+const fn = require("../../conf/function");
 const router = express.Router();
 
 router.use("/NguoiDung", require("./NguoiDung.route"));
@@ -13,7 +14,11 @@ router.get("/", function (req, res, next) {
 
 /* Test Route */
 router.get("/test", function (req, res, next) {
-  res.json({ result: "Test success!" });
+  let a = fn.hashMD5(new Date().getTime());
+  res.json({
+    result: "Test success!",
+    data: a,
+  });
 });
 
 module.exports = router;
