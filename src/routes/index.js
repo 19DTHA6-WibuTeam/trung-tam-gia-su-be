@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.use("/NguoiDung", require("./NguoiDung.route"));
 router.use("/ThoiGianHoc", require("./ThoiGianHoc.route"));
-router.use("/LichHoc", require("./LichHoc.route"));
+router.use("/KhoaHoc", require("./KhoaHoc.route"));
 
 /* GET home page. */
 router.get("/", function (req, res, next) {

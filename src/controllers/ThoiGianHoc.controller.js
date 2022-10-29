@@ -7,10 +7,11 @@ let controller = {};
 
 controller.get = async (req, res) => {
   let returnApi = new ReturnApi();
+  let MonHoc = await ThoiGianHoc.getMonHoc();
   let CaHoc = await ThoiGianHoc.getCaHoc();
   let ThuTrongTuan = await ThoiGianHoc.getThuTrongTuan();
   returnApi.success = true;
-  returnApi.data = { CaHoc, ThuTrongTuan };
+  returnApi.data = { MonHoc, CaHoc, ThuTrongTuan };
   res.send(returnApi.toObject());
 };
 

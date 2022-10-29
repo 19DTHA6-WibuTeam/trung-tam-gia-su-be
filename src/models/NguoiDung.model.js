@@ -1,13 +1,13 @@
 const jsonwebtoken = require("jsonwebtoken");
 const moment = require("moment");
 const fn = require("../../conf/function");
-const mysqlConn = require("../../database/mysql");
+const { pool } = require("../../database/mysql");
 
 let model = {};
 
 model.getById = function (value, key = "MaNguoiDung") {
   return new Promise((resolve) => {
-    mysqlConn.query(
+    pool.query(
       "SELECT * FROM NguoiDung WHERE ?? = ?",
       [key, value],
       (err, results) => {
@@ -34,7 +34,9 @@ model.login = async function (body) {
           ...payload,
           bypass: fn.hmacMD5(result.MaNguoiDung),
         };
+      delete result.MatKhau;
       return {
+        ...result,
         token: jsonwebtoken.sign(payload, JWT_PASSWORD, {
           expiresIn: "1d",
         }),
@@ -51,7 +53,7 @@ model.register = function (body) {
   return new Promise(async (resolve) => {
     let a = await model.getById(Email, "Email");
     if (!a)
-      mysqlConn.query(
+      pool.query(
         "INSERT INTO NguoiDung(HoTen, NgaySinh, GioiTinh, DiaChi, SDT, Email, MatKhau, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         [
           HoTen,
@@ -77,42 +79,42 @@ model.update = async function (MaNguoiDung, body) {
   let sql = "UPDATE NguoiDung SET ",
     isChanged = false;
   if (HoTen) {
-    sql += "HoTen = " + mysqlConn.escape(HoTen) + ",";
+    sql += "HoTen = " + pool.escape(HoTen) + ",";
     isChanged = true;
   }
   if (NgaySinh) {
-    sql += "NgaySinh = " + mysqlConn.escape(NgaySinh) + ",";
+    sql += "NgaySinh = " + pool.escape(NgaySinh) + ",";
     isChanged = true;
   }
   if (GioiTinh) {
-    sql += "GioiTinh = " + mysqlConn.escape(GioiTinh) + ",";
+    sql += "GioiTinh = " + pool.escape(GioiTinh) + ",";
     isChanged = true;
   }
   if (DiaChi) {
-    sql += "DiaChi = " + mysqlConn.escape(DiaChi) + ",";
+    sql += "DiaChi = " + pool.escape(DiaChi) + ",";
     isChanged = true;
   }
   if (SDT) {
-    sql += "SDT = " + mysqlConn.escape(SDT) + ",";
+    sql += "SDT = " + pool.escape(SDT) + ",";
     isChanged = true;
   }
   if (Email) {
-    sql += "Email = " + mysqlConn.escape(Email) + ",";
+    sql += "Email = " + pool.escape(Email) + ",";
     isChanged = true;
   }
   if (MatKhau) {
-    sql += "MatKhau = " + mysqlConn.escape(fn.hashPassword(MatKhau)) + ",";
+    sql += "MatKhau = " + pool.escape(fn.hashPassword(MatKhau)) + ",";
     isChanged = true;
   }
   if (isChanged) {
     sql =
       sql.substring(0, sql.length - 1) +
       " WHERE MaNguoiDung = " +
-      mysqlConn.escape(MaNguoiDung);
+      pool.escape(MaNguoiDung);
     let a = await model.getById(MaNguoiDung, "MaNguoiDung");
     if (a)
       return new Promise((resolve) => {
-        mysqlConn.query(sql, (err, results) => {
+        pool.query(sql, (err, results) => {
           if (err) console.log(err);
           resolve(results);
         });
