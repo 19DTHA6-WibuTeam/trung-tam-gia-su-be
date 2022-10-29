@@ -13,6 +13,14 @@ fn.isNumeric = function (str) {
   ); // ...and ensure strings of whitespace fail
 };
 
+fn.addMinToTime = function (time, min) {
+  let t = time.split(":");
+  let oldDate = new Date();
+  oldDate.setHours(~~t[0], ~~t[1], 00, 00);
+  let newDate = new Date(oldDate.getTime() + min * 60 * 1000);
+  return newDate.getHours() + ":" + newDate.getMinutes() + ":00";
+};
+
 fn.hashMD5 = function (str) {
   str = String(str);
   return crypto.createHash("md5").update(str).digest("hex");

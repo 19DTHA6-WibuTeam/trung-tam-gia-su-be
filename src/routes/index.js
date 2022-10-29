@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 
 router.use("/NguoiDung", require("./NguoiDung.route"));
+router.use("/ThoiGianHoc", require("./ThoiGianHoc.route"));
+router.use("/LichHoc", require("./LichHoc.route"));
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
