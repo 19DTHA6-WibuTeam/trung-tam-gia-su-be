@@ -64,7 +64,7 @@ controller.update = async (req, res) => {
     req.MaNguoiDung == MaNguoiDung ||
     req.bypass == fn.hmacMD5(req.MaNguoiDung)
   ) {
-    let a = await NguoiDung.update(MaNguoiDung, req.body);
+    let a = await NguoiDung.update(MaNguoiDung, req.body, req.files);
     if (typeof a == "string") returnApi.message = a;
     else {
       returnApi.success = true;

@@ -74,8 +74,9 @@ model.register = function (body) {
   });
 };
 
-model.update = async function (MaNguoiDung, body) {
-  let { HoTen, NgaySinh, GioiTinh, DiaChi, SDT, Email, MatKhau } = body;
+model.update = async function (MaNguoiDung, body, files = null) {
+  let { HoTen, NgaySinh, GioiTinh, DiaChi, SDT, Email, MatKhau } = body,
+    Avatar = "";
   let sql = "UPDATE NguoiDung SET ",
     isChanged = false;
   if (HoTen) {
@@ -106,6 +107,28 @@ model.update = async function (MaNguoiDung, body) {
     sql += "MatKhau = " + pool.escape(fn.hashPassword(MatKhau)) + ",";
     isChanged = true;
   }
+
+  if (files) {
+    let avatar_temp = files.avatar;
+    if (avatar_temp.mimetype.includes("image/")) {
+      if (avatar_temp.size < 2 * 1024 * 1024) {
+        let user = await model.getById(MaNguoiDung);
+        let file_name =
+          "./temp/" +
+          fn.hashMD5(avatar_temp.name + MaNguoiDung) +
+          "." +
+          avatar_temp.mimetype.replace("image/", "");
+        avatar_temp.mv(file_name);
+        let img = await fn.uploadImg(file_name, true, user.Avatar);
+        if (typeof img.link == "string") Avatar = img.link;
+      } else return "File ảnh không được quá 2MB.";
+    } else return "File ảnh không hợp lệ!";
+  }
+
+  if (Avatar) {
+    sql += "Avatar = " + pool.escape(Avatar) + ",";
+    isChanged = true;
+  }
   if (isChanged) {
     sql =
       sql.substring(0, sql.length - 1) +
@@ -119,7 +142,7 @@ model.update = async function (MaNguoiDung, body) {
           resolve(results);
         });
       });
-    else return "Tài khoản không tìm thấy";
+    else return "Tài khoản không tìm thấy!";
   }
 };
 

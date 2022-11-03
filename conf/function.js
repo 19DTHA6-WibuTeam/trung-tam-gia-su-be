@@ -1,7 +1,15 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const { ImgurClient } = require("imgur");
 const ReturnApi = require("../src/models/returnApi.model");
+
+const imgurClient = new ImgurClient({
+  clientId: process.env.IMGUR_CLIENT_ID,
+  clientSecret: process.env.IMGUR_CLIENT_SECRET,
+  refreshToken: process.env.IMGUR_REFRESH_TOKEN,
+});
 
 let fn = {};
 
@@ -72,6 +80,22 @@ fn.verifyAuth = async function (req, res, next) {
   }
   res.send(returnApi.toObject());
   return false;
+};
+
+fn.uploadImg = async function (file, deleteSrc = false, deleteHash = null) {
+  // upload multiple images via fs.createReadStream (node)
+  const response = await imgurClient.upload({
+    image: fs.createReadStream(file),
+    type: "stream",
+    album: process.env.IMGUR_ALBUM_ID,
+  });
+  // console.log(response.data);
+  if (deleteSrc) fs.unlinkSync(file);
+  if (deleteHash)
+    imgurClient.deleteImage(
+      deleteHash.replace("https://i.imgur.com/", "").split(".")[0]
+    );
+  return response.data;
 };
 
 module.exports = fn;

@@ -3,7 +3,7 @@ require("dotenv").config();
 const app = require("express")();
 const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
-
+const fileUpload = require("express-fileupload");
 // require("./database/mysql");
 
 const serverHost = "localhost";
@@ -11,7 +11,7 @@ const serverPort = process.env.PORT || 3004;
 
 let index = require("./src/routes/index");
 
-//Parse incoming request bodies and register nested route
+app.use(fileUpload());
 app.use(
   bodyParser.urlencoded({
     extended: true,
