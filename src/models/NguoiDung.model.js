@@ -79,7 +79,7 @@ model.update = async function (MaNguoiDung, body, files = null) {
     Avatar = "";
 
   let user = await model.getById(MaNguoiDung);
-  if (a) {
+  if (user) {
     let sql = "UPDATE NguoiDung SET ",
       isChanged = false;
     if (HoTen) {

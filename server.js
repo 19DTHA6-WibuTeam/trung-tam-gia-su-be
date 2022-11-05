@@ -1,6 +1,7 @@
 "use strict";
 require("dotenv").config();
 const app = require("express")();
+const nocache = require("nocache");
 const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
@@ -11,6 +12,8 @@ const serverPort = process.env.PORT || 3004;
 
 let index = require("./src/routes/index");
 
+app.set("etag", false);
+app.use(nocache());
 app.use(fileUpload());
 app.use(
   bodyParser.urlencoded({
@@ -19,6 +22,11 @@ app.use(
 );
 app.use(bodyParser.json());
 // app.use(cookieParser());
+app.use(function (req, res, next) {
+  // res.removeHeader("x-powered-by");
+  res.setHeader("X-Powered-By", "from WibuTeam wit luv.");
+  next();
+});
 app.use("/", index);
 app.use(function (req, res) {
   res.status(404).send({
