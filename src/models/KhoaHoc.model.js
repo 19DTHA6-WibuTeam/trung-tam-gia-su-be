@@ -112,7 +112,7 @@ model.update = async function (MaKhoaHoc, body) {
 
   let a = await model.getById(MaKhoaHoc);
   if (a) {
-    if (a.MaGiaSu)
+    if (a.MaGiaSu || a.TinhTrang >= 2)
       return "Khoá học này đang được thực hiện. Vui lòng liên hệ quản trị để trao đổi.";
     else {
       let sql = "UPDATE KhoaHoc SET ",
@@ -155,6 +155,7 @@ model.update = async function (MaKhoaHoc, body) {
         await conn.beginTransaction();
         let b = {};
         if (isChanged) {
+          sql += "TinhTrang = 0,";
           sql =
             sql.substring(0, sql.length - 1) +
             " WHERE MaKhoaHoc = " +
@@ -192,7 +193,7 @@ model.update = async function (MaKhoaHoc, body) {
 model.delete = async function (MaKhoaHoc) {
   let a = await model.getById(MaKhoaHoc);
   if (a) {
-    if (a.MaGiaSu)
+    if (a.MaGiaSu || a.TinhTrang >= 2)
       return "Khoá học này đang được thực hiện. Vui lòng liên hệ quản trị để trao đổi.";
     else {
       let conn = await connection();
