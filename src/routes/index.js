@@ -4,7 +4,7 @@ const fn = require("../../conf/function");
 const router = express.Router();
 
 router.use("/NguoiDung", require("./NguoiDung.route"));
-router.use("/ThoiGianHoc", require("./ThoiGianHoc.route"));
+router.use("/ThongTinDangKy", require("./ThongTinDangKy.route"));
 router.use("/KhoaHoc", require("./KhoaHoc.route"));
 
 /* GET home page. */

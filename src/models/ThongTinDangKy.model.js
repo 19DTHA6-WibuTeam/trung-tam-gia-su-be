@@ -29,4 +29,13 @@ model.getThuTrongTuan = function () {
   });
 };
 
+model.getSoTienBuoiHoc = function () {
+  return new Promise((resolve) => {
+    pool.query("SELECT * FROM SoTienBuoiHoc", (err, results) => {
+      if (err) console.log(err);
+      resolve(results);
+    });
+  });
+};
+
 module.exports = model;

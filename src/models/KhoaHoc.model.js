@@ -47,6 +47,7 @@ model.post = async function (body) {
   let {
     MaMonHoc,
     MaHocSinh,
+    KhoiLop,
     HoTen,
     DiaChi,
     SDT,
@@ -62,17 +63,18 @@ model.post = async function (body) {
   try {
     await conn.beginTransaction();
     let a = await conn.query(
-      "INSERT INTO KhoaHoc(MaMonHoc, MaHocSinh, HoTen, DiaChi, SDT, NgayBatDau, SoTuan, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO KhoaHoc(MaMonHoc, MaHocSinh, KhoiLop, HoTen, DiaChi, SDT, NgayBatDau, SoTuan, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
-        MaMonHoc,
+        MaMonHoc.trim(),
         MaHocSinh,
-        HoTen,
-        DiaChi,
-        SDT,
-        NgayBatDau,
-        SoTuan,
-        SoTien,
-        GhiChu,
+        KhoiLop.trim(),
+        HoTen.trim(),
+        DiaChi.trim(),
+        SDT.trim(),
+        NgayBatDau.trim(),
+        SoTuan.trim(),
+        SoTien.trim(),
+        GhiChu ? GhiChu.trim() : null,
       ]
     );
     let MaKhoaHoc = a.insertId;
@@ -98,6 +100,7 @@ model.post = async function (body) {
 model.update = async function (MaKhoaHoc, body) {
   let {
     MaMonHoc,
+    KhoiLop,
     HoTen,
     DiaChi,
     SDT,
@@ -120,32 +123,36 @@ model.update = async function (MaKhoaHoc, body) {
         sql += "MaMonHoc = " + pool.escape(MaMonHoc) + ",";
         isChanged = true;
       }
+      if (KhoiLop) {
+        sql += "KhoiLop = " + pool.escape(KhoiLop.trim()) + ",";
+        isChanged = true;
+      }
       if (HoTen) {
-        sql += "HoTen = " + pool.escape(HoTen) + ",";
+        sql += "HoTen = " + pool.escape(HoTen.trim()) + ",";
         isChanged = true;
       }
       if (DiaChi) {
-        sql += "DiaChi = " + pool.escape(DiaChi) + ",";
+        sql += "DiaChi = " + pool.escape(DiaChi.trim()) + ",";
         isChanged = true;
       }
       if (SDT) {
-        sql += "SDT = " + pool.escape(SDT) + ",";
+        sql += "SDT = " + pool.escape(SDT.trim()) + ",";
         isChanged = true;
       }
       if (NgayBatDau) {
-        sql += "NgayBatDau = " + pool.escape(NgayBatDau) + ",";
+        sql += "NgayBatDau = " + pool.escape(NgayBatDau.trim()) + ",";
         isChanged = true;
       }
       if (SoTuan) {
-        sql += "SoTuan = " + pool.escape(SoTuan) + ",";
+        sql += "SoTuan = " + pool.escape(SoTuan.trim()) + ",";
         isChanged = true;
       }
       if (SoTien) {
-        sql += "SoTien = " + pool.escape(SoTien) + ",";
+        sql += "SoTien = " + pool.escape(SoTien.trim()) + ",";
         isChanged = true;
       }
-      if (GhiChu) {
-        sql += "GhiChu = " + pool.escape(GhiChu) + ",";
+      if (GhiChu != undefined) {
+        sql += "GhiChu = " + pool.escape(GhiChu ? GhiChu.trim() : null) + ",";
         isChanged = true;
       }
 
