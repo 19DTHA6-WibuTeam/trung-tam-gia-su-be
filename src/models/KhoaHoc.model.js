@@ -20,7 +20,7 @@ model.getTKB = function (MaKhoaHoc) {
 model.getList = function (key, value) {
   return new Promise((resolve) => {
     pool.query(
-      "SELECT * FROM KhoaHoc WHERE ?? = ? ORDER BY MaKhoaHoc DESC",
+      "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc WHERE ?? = ? ORDER BY MaKhoaHoc DESC",
       [key, value],
       async (err, results) => {
         if (err) console.log(err);
@@ -51,7 +51,6 @@ model.post = async function (body) {
     HoTen,
     DiaChi,
     SDT,
-    NgayBatDau,
     SoTuan,
     SoTien,
     GhiChu,
@@ -63,7 +62,7 @@ model.post = async function (body) {
   try {
     await conn.beginTransaction();
     let a = await conn.query(
-      "INSERT INTO KhoaHoc(MaMonHoc, MaHocSinh, KhoiLop, HoTen, DiaChi, SDT, NgayBatDau, SoTuan, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO KhoaHoc(MaMonHoc, MaHocSinh, KhoiLop, HoTen, DiaChi, SDT, NgayDangKy, SoTuan, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         MaMonHoc.trim(),
         MaHocSinh,
@@ -71,7 +70,7 @@ model.post = async function (body) {
         HoTen.trim(),
         DiaChi.trim(),
         SDT.trim(),
-        NgayBatDau.trim(),
+        moment().format("YYYY-MM-DD"),
         SoTuan.trim(),
         SoTien.trim(),
         GhiChu ? GhiChu.trim() : null,
@@ -104,7 +103,6 @@ model.update = async function (MaKhoaHoc, body) {
     HoTen,
     DiaChi,
     SDT,
-    NgayBatDau,
     SoTuan,
     SoTien,
     GhiChu,
@@ -137,10 +135,6 @@ model.update = async function (MaKhoaHoc, body) {
       }
       if (SDT) {
         sql += "SDT = " + pool.escape(SDT.trim()) + ",";
-        isChanged = true;
-      }
-      if (NgayBatDau) {
-        sql += "NgayBatDau = " + pool.escape(NgayBatDau.trim()) + ",";
         isChanged = true;
       }
       if (SoTuan) {
