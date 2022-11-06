@@ -68,8 +68,18 @@ fn.verifyAuth = async function (req, res, next) {
     if (parse.MaNguoiDung) {
       req.MaNguoiDung = parse.MaNguoiDung;
       req.bypass = parse.bypass || null;
-      next();
-      return true;
+      if (parse.bypass) {
+        if (parse.bypass == fn.hmacMD5(parse.MaNguoiDung)) {
+          next();
+          return true;
+        } else {
+          res.status(403);
+          returnApi.message = "You do not have permission to access!";
+        }
+      } else {
+        next();
+        return true;
+      }
     } else {
       res.status(403);
       returnApi.message = "You do not have permission to access!";
@@ -80,6 +90,13 @@ fn.verifyAuth = async function (req, res, next) {
   }
   res.send(returnApi.toObject());
   return false;
+};
+
+fn.Offset = function (page = 1, limit = process.env.DATA_PER_PAGE) {
+  if (limit == 0) return "";
+  if (page < 1 || !is_numeric(page)) page = 1;
+  $offset = " LIMIT " + (page - 1) * limit + "," + limit;
+  return $offset;
 };
 
 fn.uploadImg = async function (file, deleteSrc = false, deleteHash = null) {

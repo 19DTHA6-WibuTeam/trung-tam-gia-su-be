@@ -7,6 +7,8 @@ router.use("/NguoiDung", require("./NguoiDung.route"));
 router.use("/ThongTinDangKy", require("./ThongTinDangKy.route"));
 router.use("/KhoaHoc", require("./KhoaHoc.route"));
 router.use("/ThoiKhoaBieu", require("./ThoiKhoaBieu.route"));
+router.use("/HoaDon", require("./HoaDon.route"));
+router.use("/Admin", require("./Admin.route"));
 
 /* GET home page. */
 router.get("/", function (req, res, next) {

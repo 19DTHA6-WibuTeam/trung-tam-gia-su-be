@@ -12,6 +12,14 @@ const fn = require("../../conf/function");
 router.route("/login").post(NguoiDungController.login);
 router.route("/register").post(NguoiDungController.register);
 router
+  .route("/check-session")
+  .all(fn.verifyAuth)
+  .get(NguoiDungController.checkSession);
+router
+  .route("/DoiMatKhau")
+  .all(fn.verifyAuth)
+  .post(NguoiDungController.DoiMatKhau);
+router
   .route("/:MaNguoiDung")
   .all(fn.verifyAuth)
   .get(NguoiDungController.getById)

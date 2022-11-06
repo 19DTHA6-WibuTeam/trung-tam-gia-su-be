@@ -11,7 +11,7 @@ controller.getById = async (req, res) => {
   let returnApi = new ReturnApi();
   let { MaNguoiDung } = req.params;
   let bypass = req.bypass;
-  if (req.MaNguoiDung == MaNguoiDung || bypass == fn.hmacMD5(req.MaNguoiDung)) {
+  if (req.MaNguoiDung == MaNguoiDung || bypass) {
     let data = await NguoiDung.getById(MaNguoiDung);
     if (data) {
       returnApi.success = true;
@@ -60,10 +60,7 @@ controller.register = async (req, res) => {
 controller.update = async (req, res) => {
   let returnApi = new ReturnApi();
   let { MaNguoiDung } = req.params;
-  if (
-    req.MaNguoiDung == MaNguoiDung ||
-    req.bypass == fn.hmacMD5(req.MaNguoiDung)
-  ) {
+  if (req.MaNguoiDung == MaNguoiDung || req.bypass) {
     let a = await NguoiDung.update(MaNguoiDung, req.body, req.files);
     if (typeof a == "string") returnApi.message = a;
     else {
@@ -71,6 +68,25 @@ controller.update = async (req, res) => {
       returnApi.data = a;
     }
   } else returnApi.message = "Bạn không có quyền truy cập.";
+  res.send(returnApi.toObject());
+};
+
+controller.DoiMatKhau = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let { MatKhauCu, MatKhauMoi } = req.body;
+  let a = await NguoiDung.DoiMatKhau(req.MaNguoiDung, MatKhauCu, MatKhauMoi);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
+controller.checkSession = (req, res) => {
+  let returnApi = new ReturnApi();
+  returnApi.success = true;
+  returnApi.message = "Yahoo.";
   res.send(returnApi.toObject());
 };
 

@@ -5,7 +5,7 @@ let model = {};
 model.getThoiKhoaBieu = function (key, value) {
   return new Promise((resolve) => {
     pool.query(
-      "SELECT KH.MaKhoaHoc, KH.NgayBatDau, KH.SoTuan, MH.TenMonHoc, CH.*, TTT.* FROM ThoiKhoaBieu TKB LEFT JOIN KhoaHoc KH ON TKB.MaKhoaHoc = KH.MaKhoaHoc LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc LEFT JOIN CaHoc CH ON TKB.MaCaHoc = CH.MaCaHoc LEFT JOIN ThuTrongTuan TTT ON TKB.MaThu = TTT.MaThu WHERE ?? = ? AND KH.TinhTrang = 2",
+      "SELECT KH.MaKhoaHoc, KH.HoTen, KH.DiaChi, KH.SDT, KH.NgayBatDau, KH.SoTuan, DATE_ADD(KH.NgayBatDau, INTERVAL (KH.SoTuan * 7 - 1) DAY) AS NgayKetThuc, MH.TenMonHoc, CH.*, TTT.* FROM ThoiKhoaBieu TKB LEFT JOIN KhoaHoc KH ON TKB.MaKhoaHoc = KH.MaKhoaHoc LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc LEFT JOIN CaHoc CH ON TKB.MaCaHoc = CH.MaCaHoc LEFT JOIN ThuTrongTuan TTT ON TKB.MaThu = TTT.MaThu WHERE ?? = ? AND KH.TinhTrang = 2",
       ["KH." + key, value],
       (err, results) => {
         if (err) console.log(err);

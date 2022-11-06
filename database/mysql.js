@@ -33,6 +33,7 @@ const connection = () => {
       const beginTransaction = () => {
         return new Promise((resolve, reject) => {
           if (err) reject(err);
+          console.log("----------");
           console.log("MySQL pool began: threadId " + connection.threadId);
           resolve(connection.beginTransaction());
         });

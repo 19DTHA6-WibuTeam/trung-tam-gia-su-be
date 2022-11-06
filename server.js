@@ -1,5 +1,6 @@
 "use strict";
 require("dotenv").config();
+const cors = require("cors");
 const app = require("express")();
 const nocache = require("nocache");
 const bodyParser = require("body-parser");
@@ -12,6 +13,7 @@ const serverPort = process.env.PORT || 3004;
 
 let index = require("./src/routes/index");
 
+app.use(cors());
 app.set("etag", false);
 app.use(nocache());
 app.use(fileUpload());

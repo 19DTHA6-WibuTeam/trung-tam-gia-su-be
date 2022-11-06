@@ -43,6 +43,27 @@ model.getById = async function (MaKhoaHoc) {
   else return null;
 };
 
+let sqlIsDuplicateTKB =
+  "SELECT TKB.MaKhoaHoc, TKB.MaCaHoc, GROUP_CONCAT(TKB.MaThu SEPARATOR ',') AS MaThu FROM KhoaHoc KH LEFT JOIN ThoiKhoaBieu TKB ON KH.MaKhoaHoc = TKB.MaKhoaHoc WHERE ?? = ? AND TKB.MaCaHoc = ? AND KH.TinhTrang < 3 GROUP BY TKB.MaKhoaHoc, TKB.MaCaHoc";
+model.isDuplicateTKB = async function (
+  key = "MaHocSinh",
+  v,
+  MaCaHoc,
+  MaThu = []
+) {
+  return new Promise((resolve) => {
+    pool.query(sqlIsDuplicateTKB, ["KH." + key, v, MaCaHoc], (err, results) => {
+      for (let i in results)
+        for (let j in MaThu)
+          if (results[i].MaThu.includes(MaThu[j])) {
+            resolve(true);
+            break;
+          }
+      resolve(false);
+    });
+  });
+};
+
 model.post = async function (body) {
   let {
     MaMonHoc,
@@ -57,6 +78,15 @@ model.post = async function (body) {
     MaCaHoc,
     MaThu,
   } = body;
+
+  let MaThu_arr = MaThu.trim().split(",");
+  let check = await model.isDuplicateTKB(
+    "MaHocSinh",
+    MaHocSinh,
+    MaCaHoc.trim(),
+    MaThu_arr
+  );
+  if (check) return "Bị trùng lịch, vui lòng kiểm tra lại!";
 
   let conn = await connection();
   try {
@@ -77,12 +107,11 @@ model.post = async function (body) {
       ]
     );
     let MaKhoaHoc = a.insertId;
-    let b = MaThu.split(",");
-    for (let i in b) {
-      if (b[i])
+    for (let i in MaThu_arr) {
+      if (MaThu_arr[i])
         await conn.query(
           "INSERT INTO ThoiKhoaBieu(MaKhoaHoc, MaCaHoc, MaThu) VALUES (?, ?, ?)",
-          [MaKhoaHoc, MaCaHoc, b[i]]
+          [MaKhoaHoc, MaCaHoc.trim(), MaThu_arr[i]]
         );
     }
     await conn.commit();
@@ -167,12 +196,31 @@ model.update = async function (MaKhoaHoc, body) {
             "DELETE FROM ThoiKhoaBieu WHERE MaKhoaHoc = ?",
             MaKhoaHoc
           );
-          let c = MaThu.split(",");
-          for (let i in c) {
-            if (c[i])
+
+          let MaThu_arr = MaThu.trim().split(",");
+          let check = false;
+          let results = await conn.query(sqlIsDuplicateTKB, [
+            "KH.MaHocSinh",
+            a.MaHocSinh,
+            MaCaHoc.trim(),
+          ]);
+          for (let i in results)
+            for (let j in MaThu_arr)
+              if (results[i].MaThu.includes(MaThu_arr[j])) {
+                check = true;
+                break;
+              }
+          if (check) {
+            await conn.rollback();
+            await conn.release();
+            return "Bị trùng lịch, vui lòng kiểm tra lại!";
+          }
+
+          for (let i in MaThu_arr) {
+            if (MaThu_arr[i])
               await conn.query(
                 "INSERT INTO ThoiKhoaBieu(MaKhoaHoc, MaCaHoc, MaThu) VALUES (?, ?, ?)",
-                [MaKhoaHoc, MaCaHoc, c[i]]
+                [MaKhoaHoc, MaCaHoc, MaThu_arr[i]]
               );
           }
         }

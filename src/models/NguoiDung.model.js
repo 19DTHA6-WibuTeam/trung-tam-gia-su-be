@@ -112,6 +112,7 @@ model.update = async function (MaNguoiDung, body, files = null) {
     }
 
     if (files) {
+      console.log("Upload avatar.");
       let avatar_temp = files.avatar;
       if (avatar_temp.mimetype.includes("image/")) {
         if (avatar_temp.size < 2 * 1024 * 1024) {
@@ -143,6 +144,25 @@ model.update = async function (MaNguoiDung, body, files = null) {
         });
       });
     }
+  } else return "Tài khoản không tìm thấy!";
+};
+
+model.DoiMatKhau = async function (MaNguoiDung, MatKhauCu, MatKhauMoi) {
+  if (!MatKhauCu || !MatKhauMoi) return "Thiếu thông tin.";
+  let a = await model.getById(MaNguoiDung, "MaNguoiDung");
+  if (a) {
+    if (fn.verifyPassword(MatKhauCu, a.MatKhau)) {
+      return new Promise(async (resolve) => {
+        pool.query(
+          "UPDATE NguoiDung SET MatKhau = ? WHERE MaNguoiDung = ?",
+          [fn.hashPassword(MatKhauMoi), MaNguoiDung],
+          (err, results) => {
+            if (err) console.log(err);
+            resolve(results);
+          }
+        );
+      });
+    } else return "Mật khẩu cũ không chính xác!";
   } else return "Tài khoản không tìm thấy!";
 };
 
