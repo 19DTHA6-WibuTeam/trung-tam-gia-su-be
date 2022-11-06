@@ -61,4 +61,16 @@ controller.delete = async (req, res) => {
   res.send(returnApi.toObject());
 };
 
+controller.DangKyDay = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await KhoaHoc.DangKyDay(req.MaNguoiDung, req.params.MaKhoaHoc);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đã đăng ký dạy khoá học thành công.";
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
 module.exports = controller;

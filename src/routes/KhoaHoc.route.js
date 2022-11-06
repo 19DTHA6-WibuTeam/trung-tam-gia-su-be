@@ -5,6 +5,10 @@ const router = express.Router();
 const KhoaHocController = require("../controllers/KhoaHoc.controller");
 
 router
+  .route("/GiangDay/:MaKhoaHoc")
+  .all(fn.verifyAuth)
+  .post(KhoaHocController.DangKyDay);
+router
   .route("/")
   .all(fn.verifyAuth)
   .get(KhoaHocController.getList)

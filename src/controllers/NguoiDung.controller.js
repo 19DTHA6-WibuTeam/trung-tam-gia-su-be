@@ -11,27 +11,25 @@ controller.getById = async (req, res) => {
   let returnApi = new ReturnApi();
   let { MaNguoiDung } = req.params;
   let bypass = req.bypass;
-  if (req.MaNguoiDung == MaNguoiDung || bypass) {
-    let data = await NguoiDung.getById(MaNguoiDung);
-    if (data) {
-      returnApi.success = true;
-      delete data.MatKhau;
-      // returnApi.data = data;
-      let payload = { MaNguoiDung: req.MaNguoiDung },
-        JWT_PASSWORD = process.env.JWT_PASSWORD;
-      if (bypass == JWT_PASSWORD)
-        payload = {
-          ...payload,
-          bypass: fn.hmacMD5(req.MaNguoiDung),
-        };
-      returnApi.data = {
-        ...data,
-        token: jsonwebtoken.sign(payload, JWT_PASSWORD, {
-          expiresIn: "1d",
-        }),
+  let data = await NguoiDung.getById(MaNguoiDung);
+  if (data) {
+    returnApi.success = true;
+    delete data.MatKhau;
+    // returnApi.data = data;
+    let payload = { MaNguoiDung: req.MaNguoiDung },
+      JWT_PASSWORD = process.env.JWT_PASSWORD;
+    if (bypass == JWT_PASSWORD)
+      payload = {
+        ...payload,
+        bypass: fn.hmacMD5(req.MaNguoiDung),
       };
-    } else returnApi.message = "Người dùng không tìm thấy.";
-  } else returnApi.message = "Bạn không có quyền truy cập.";
+    returnApi.data = {
+      ...data,
+      token: jsonwebtoken.sign(payload, JWT_PASSWORD, {
+        expiresIn: "1d",
+      }),
+    };
+  } else returnApi.message = "Người dùng không tìm thấy.";
   res.send(returnApi.toObject());
 };
 

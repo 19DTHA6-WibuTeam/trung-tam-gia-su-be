@@ -1,4 +1,5 @@
 const moment = require("moment");
+const NguoiDungModel = require("../models/NguoiDung.model");
 const fn = require("../../conf/function");
 const { pool, connection, query } = require("../../database/mysql");
 
@@ -29,7 +30,20 @@ model.getList = function (key, value) {
         for (let i in results) {
           let a = results[i];
           let b = await model.getTKB(a.MaKhoaHoc);
-          data = [...data, { ...a, ThoiKhoaBieu: b }];
+          let c = {
+            MaCaHoc: b[0].MaCaHoc,
+            GioBatDau: b[0].GioBatDau,
+            GioKetThuc: b[0].GioKetThuc,
+            MaThu: "",
+            TenThu: "",
+          };
+          for (let j in b) {
+            c.MaThu = [...c.MaThu, b[j].MaThu];
+            c.TenThu = [...c.TenThu, b[j].TenThu];
+          }
+          c.MaThu = c.MaThu.join(",");
+          c.TenThu = c.TenThu.join(", ");
+          data = [...data, { ...a, ThoiKhoaBieu: b, ThoiKhoaBieu_TomTat: c }];
         }
         resolve(data);
       }
@@ -258,6 +272,52 @@ model.delete = async function (MaKhoaHoc) {
         await conn.commit();
         await conn.release();
         return { KhoaHoc: c, ThoiKhoaBieu: b };
+      } catch (err) {
+        console.log(err);
+        await conn.rollback();
+        await conn.release();
+        return "Có lỗi xảy ra, vui lòng thử lại.";
+      }
+    }
+  }
+  return "Không tồn tại khoá học.";
+};
+
+model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
+  let a = await NguoiDungModel.getById(MaGiaSu);
+  if (a.LaGiaSu == 0) return "Bạn không phải là gia sư.";
+  let b = await model.getById(MaKhoaHoc);
+  if (b) {
+    if (b.MaGiaSu || b.TinhTrang >= 2)
+      return "Khoá học này đã được đăng ký dạy trước đó.";
+    else {
+      // let c = await model.getList("MaGiaSu", MaGiaSu);
+      let MaThu_arr = b.ThoiKhoaBieu_TomTat.MaThu.split(",");
+      let check = await model.isDuplicateTKB(
+        "MaGiaSu",
+        MaGiaSu,
+        b.ThoiKhoaBieu_TomTat.MaCaHoc,
+        MaThu_arr
+      );
+      if (check) return "Bị trùng lịch, vui lòng kiểm tra lại!";
+
+      let conn = await connection();
+      try {
+        await conn.beginTransaction();
+
+        let c = await conn.query(
+          "UPDATE KhoaHoc SET MaGiaSu = ?, TinhTrang = 2 WHERE MaKhoaHoc = ?",
+          [MaGiaSu, MaKhoaHoc]
+        );
+        let SoTien = b.SoTien * b.SoTuan * MaThu_arr.length;
+        await conn.query(
+          "INSERT INTO HoaDon(MaNguoiDung, LoaiPhieu, TinhTrang, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?)",
+          [b.MaHocSinh, 1, 0, SoTien, "Học phí khoá học mã #" + MaKhoaHoc]
+        );
+
+        await conn.commit();
+        await conn.release();
+        return c;
       } catch (err) {
         console.log(err);
         await conn.rollback();
