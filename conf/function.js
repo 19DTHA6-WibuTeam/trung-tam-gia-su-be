@@ -29,6 +29,18 @@ fn.addMinToTime = function (time, min) {
   return newDate.getHours() + ":" + newDate.getMinutes() + ":00";
 };
 
+fn.getMonday = function (d) {
+  d = new Date(d);
+  var day = d.getDay(),
+    diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+  var new_day = new Date(d.setDate(diff));
+  var date = new_day.getDate();
+  date = date < 10 ? "0" + date : date;
+  var month = new_day.getMonth();
+  month = month < 10 ? "0" + month : month;
+  return new_day.getFullYear() + "-" + month + "-" + date;
+};
+
 fn.hashMD5 = function (str) {
   str = String(str);
   return crypto.createHash("md5").update(str).digest("hex");
@@ -112,6 +124,13 @@ fn.uploadImg = async function (file, deleteSrc = false, deleteHash = null) {
     imgurClient.deleteImage(
       deleteHash.replace("https://i.imgur.com/", "").split(".")[0]
     );
+  return response.data;
+};
+
+fn.deleteImg = async function (deleteHash) {
+  const response = await imgurClient.deleteImage(
+    deleteHash.replace("https://i.imgur.com/", "").split(".")[0]
+  );
   return response.data;
 };
 

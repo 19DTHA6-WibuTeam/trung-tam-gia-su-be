@@ -1,7 +1,7 @@
 const moment = require("moment");
 const NguoiDungModel = require("../models/NguoiDung.model");
-const fn = require("../../conf/function");
 const { pool, connection, query } = require("../../database/mysql");
+const fn = require("../../conf/function");
 
 let model = {};
 
@@ -18,36 +18,37 @@ model.getTKB = function (MaKhoaHoc) {
   });
 };
 
-model.getList = function (key, value) {
+model.getList = function (key = null, value = null) {
+  let sql =
+    "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc ORDER BY MaKhoaHoc DESC";
+  if (key && value)
+    sql =
+      "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc WHERE ?? = ? ORDER BY MaKhoaHoc DESC";
   return new Promise((resolve) => {
-    pool.query(
-      "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc WHERE ?? = ? ORDER BY MaKhoaHoc DESC",
-      [key, value],
-      async (err, results) => {
-        if (err) console.log(err);
-        // resolve(results ?? []);
-        let data = [];
-        for (let i in results) {
-          let a = results[i];
-          let b = await model.getTKB(a.MaKhoaHoc);
-          let c = {
-            MaCaHoc: b[0].MaCaHoc,
-            GioBatDau: b[0].GioBatDau,
-            GioKetThuc: b[0].GioKetThuc,
-            MaThu: "",
-            TenThu: "",
-          };
-          for (let j in b) {
-            c.MaThu = [...c.MaThu, b[j].MaThu];
-            c.TenThu = [...c.TenThu, b[j].TenThu];
-          }
-          c.MaThu = c.MaThu.join(",");
-          c.TenThu = c.TenThu.join(", ");
-          data = [...data, { ...a, ThoiKhoaBieu: b, ThoiKhoaBieu_TomTat: c }];
+    pool.query(sql, [key, value], async (err, results) => {
+      if (err) console.log(err);
+      // resolve(results ?? []);
+      let data = [];
+      for (let i in results) {
+        let a = results[i];
+        let b = await model.getTKB(a.MaKhoaHoc);
+        let c = {
+          MaCaHoc: b[0].MaCaHoc,
+          GioBatDau: b[0].GioBatDau,
+          GioKetThuc: b[0].GioKetThuc,
+          MaThu: "",
+          TenThu: "",
+        };
+        for (let j in b) {
+          c.MaThu = [...c.MaThu, b[j].MaThu];
+          c.TenThu = [...c.TenThu, b[j].TenThu];
         }
-        resolve(data);
+        c.MaThu = c.MaThu.join(",");
+        c.TenThu = c.TenThu.join(", ");
+        data = [...data, { ...a, ThoiKhoaBieu: b, ThoiKhoaBieu_TomTat: c }];
       }
-    );
+      resolve(data);
+    });
   });
 };
 
@@ -306,13 +307,38 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
         await conn.beginTransaction();
 
         let c = await conn.query(
-          "UPDATE KhoaHoc SET MaGiaSu = ?, TinhTrang = 2 WHERE MaKhoaHoc = ?",
-          [MaGiaSu, MaKhoaHoc]
+          "UPDATE KhoaHoc SET MaGiaSu = ?, NgayBatDau = ?, TinhTrang = 2 WHERE MaKhoaHoc = ?",
+          [
+            MaGiaSu,
+            fn.getMonday(moment().add(7, "days").format("YYYY-MM-DD")),
+            MaKhoaHoc,
+          ]
         );
-        let SoTien = b.SoTien * b.SoTuan * MaThu_arr.length;
+        let SoTien = b.SoTien * b.SoTuan * MaThu_arr.length,
+          NgayTao = moment().format("YYYY-MM-DD");
         await conn.query(
-          "INSERT INTO HoaDon(MaNguoiDung, LoaiPhieu, TinhTrang, SoTien, GhiChu) VALUES (?, ?, ?, ?, ?)",
-          [b.MaHocSinh, 1, 0, SoTien, "Học phí khoá học mã #" + MaKhoaHoc]
+          "INSERT INTO HoaDon(MaNguoiDung, MaKhoaHoc, LoaiPhieu, TinhTrang, SoTien, GhiChu, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [
+            b.MaHocSinh,
+            MaKhoaHoc,
+            1,
+            0,
+            SoTien,
+            "Học phí mã khoá học #" + MaKhoaHoc,
+            NgayTao,
+          ]
+        );
+        await conn.query(
+          "INSERT INTO HoaDon(MaNguoiDung, MaKhoaHoc, LoaiPhieu, TinhTrang, SoTien, GhiChu, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [
+            b.MaHocSinh,
+            MaKhoaHoc,
+            2,
+            0,
+            SoTien - (SoTien * 15) / 100,
+            "Tiền lương mã khoá học #" + MaKhoaHoc,
+            NgayTao,
+          ]
         );
 
         await conn.commit();
@@ -324,6 +350,35 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
         await conn.release();
         return "Có lỗi xảy ra, vui lòng thử lại.";
       }
+    }
+  }
+  return "Không tồn tại khoá học.";
+};
+
+model.HuyLichDay = async function (MaGiaSu, MaKhoaHoc, deleteHoaDon = false) {
+  let a = await NguoiDungModel.getById(MaGiaSu);
+  if (a.LaGiaSu == 0) return "Bạn không phải là gia sư.";
+  let b = await model.getById(MaKhoaHoc);
+  if (b) {
+    let conn = await connection();
+    try {
+      await conn.beginTransaction();
+
+      let c = await conn.query(
+        "UPDATE KhoaHoc SET MaGiaSu = ?, NgayBatDau = ?, TinhTrang = 1 WHERE MaKhoaHoc = ?",
+        [null, null, MaKhoaHoc]
+      );
+      if (deleteHoaDon == true)
+        await conn.query("DELETE FROM HoaDon WHERE MaKhoaHoc = ?", MaKhoaHoc);
+
+      await conn.commit();
+      await conn.release();
+      return c;
+    } catch (err) {
+      console.log(err);
+      await conn.rollback();
+      await conn.release();
+      return "Có lỗi xảy ra, vui lòng thử lại.";
     }
   }
   return "Không tồn tại khoá học.";

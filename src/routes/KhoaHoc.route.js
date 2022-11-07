@@ -7,7 +7,8 @@ const KhoaHocController = require("../controllers/KhoaHoc.controller");
 router
   .route("/GiangDay/:MaKhoaHoc")
   .all(fn.verifyAuth)
-  .post(KhoaHocController.DangKyDay);
+  .post(KhoaHocController.DangKyDay)
+  .delete(KhoaHocController.HuyLichDay);
 router
   .route("/")
   .all(fn.verifyAuth)

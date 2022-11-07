@@ -5,6 +5,14 @@ const ReturnApi = require("../models/returnApi.model");
 
 let controller = {};
 
+// controller.getListAll = async (req, res) => {
+//   let returnApi = new ReturnApi();
+//   let a = await KhoaHoc.getList();
+//   returnApi.success = true;
+//   returnApi.data = a;
+//   res.send(returnApi.toObject());
+// };
+
 controller.getList = async (req, res) => {
   let returnApi = new ReturnApi();
   let { k, v } = req.query;
@@ -68,6 +76,18 @@ controller.DangKyDay = async (req, res) => {
   else {
     returnApi.success = true;
     returnApi.message = "Đã đăng ký dạy khoá học thành công.";
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
+controller.HuyLichDay = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await KhoaHoc.HuyLichDay(req.MaNguoiDung, req.params.MaKhoaHoc);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đã xoá lịch dạy thành công.";
     returnApi.data = a;
   }
   res.send(returnApi.toObject());

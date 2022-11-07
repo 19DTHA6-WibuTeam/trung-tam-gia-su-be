@@ -29,4 +29,12 @@ controller.getByUserId = async (req, res) => {
   res.send(returnApi.toObject());
 };
 
+controller.getByMKH = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let data = await HoaDon.getByMKH(req.params.MaKhoaHoc);
+  returnApi.success = true;
+  returnApi.data = data;
+  res.send(returnApi.toObject());
+};
+
 module.exports = controller;
