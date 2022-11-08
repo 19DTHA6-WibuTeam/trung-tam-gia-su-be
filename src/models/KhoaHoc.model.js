@@ -319,7 +319,7 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
         await conn.query(
           "INSERT INTO HoaDon(MaNguoiDung, MaKhoaHoc, LoaiPhieu, TinhTrang, SoTien, GhiChu, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
-            b.MaHocSinh,
+            MaGiaSu,
             MaKhoaHoc,
             1,
             0,
@@ -335,7 +335,7 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
             MaKhoaHoc,
             2,
             0,
-            SoTien - (SoTien * 15) / 100,
+            SoTien - (SoTien * 20) / 100,
             "Tiền lương mã khoá học #" + MaKhoaHoc,
             NgayTao,
           ]
@@ -370,6 +370,33 @@ model.HuyLichDay = async function (MaGiaSu, MaKhoaHoc, deleteHoaDon = false) {
       );
       if (deleteHoaDon == true)
         await conn.query("DELETE FROM HoaDon WHERE MaKhoaHoc = ?", MaKhoaHoc);
+
+      await conn.commit();
+      await conn.release();
+      return c;
+    } catch (err) {
+      console.log(err);
+      await conn.rollback();
+      await conn.release();
+      return "Có lỗi xảy ra, vui lòng thử lại.";
+    }
+  }
+  return "Không tồn tại khoá học.";
+};
+
+model.DoiTinhTrang = async function (MaGiaSu, MaKhoaHoc) {
+  let a = await NguoiDungModel.getById(MaGiaSu);
+  if (a.LaGiaSu == 0) return "Bạn không phải là gia sư.";
+  let b = await model.getById(MaKhoaHoc);
+  if (b) {
+    let conn = await connection();
+    try {
+      await conn.beginTransaction();
+
+      let c = await conn.query(
+        "UPDATE KhoaHoc SET TinhTrang = ? WHERE MaKhoaHoc = ?",
+        [b.TinhTrang == 1 ? 0 : 1, MaKhoaHoc]
+      );
 
       await conn.commit();
       await conn.release();

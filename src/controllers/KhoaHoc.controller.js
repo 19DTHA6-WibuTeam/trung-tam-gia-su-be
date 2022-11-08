@@ -83,11 +83,23 @@ controller.DangKyDay = async (req, res) => {
 
 controller.HuyLichDay = async (req, res) => {
   let returnApi = new ReturnApi();
-  let a = await KhoaHoc.HuyLichDay(req.MaNguoiDung, req.params.MaKhoaHoc);
+  let a = await KhoaHoc.HuyLichDay(req.MaNguoiDung, req.params.MaKhoaHoc, true);
   if (typeof a == "string") returnApi.message = a;
   else {
     returnApi.success = true;
     returnApi.message = "Đã xoá lịch dạy thành công.";
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
+controller.DoiTinhTrang = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await KhoaHoc.DoiTinhTrang(req.MaNguoiDung, req.params.MaKhoaHoc);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đã thay đổi tình trạng khoá học thành công.";
     returnApi.data = a;
   }
   res.send(returnApi.toObject());

@@ -5,6 +5,21 @@ const { pool } = require("../../database/mysql");
 
 let model = {};
 
+model.getList = function (LaGiaSu) {
+  let sql = "SELECT * FROM NguoiDung ORDER BY MaNguoiDung DESC";
+  if (LaGiaSu)
+    sql =
+      "SELECT * FROM NguoiDung WHERE LaGiaSu = " +
+      pool.escape(LaGiaSu) +
+      " ORDER BY MaNguoiDung DESC";
+  return new Promise((resolve) => {
+    pool.query(sql, (err, results) => {
+      if (err) console.log(err);
+      resolve(results);
+    });
+  });
+};
+
 model.getById = function (value, key = "MaNguoiDung") {
   return new Promise((resolve) => {
     pool.query(
@@ -163,6 +178,24 @@ model.DoiMatKhau = async function (MaNguoiDung, MatKhauCu, MatKhauMoi) {
         );
       });
     } else return "Mật khẩu cũ không chính xác!";
+  } else return "Tài khoản không tìm thấy!";
+};
+
+model.DangKyGiaSu = async function (MaNguoiDung, bypass) {
+  let a = await model.getById(MaNguoiDung, "MaNguoiDung");
+  if (a) {
+    if (bypass)
+      return new Promise(async (resolve) => {
+        pool.query(
+          "UPDATE NguoiDung SET LaGiaSu = ? WHERE MaNguoiDung = ?",
+          [1, MaNguoiDung],
+          (err, results) => {
+            if (err) console.log(err);
+            resolve(results);
+          }
+        );
+      });
+    else return "Bạn không có quyền truy cập.";
   } else return "Tài khoản không tìm thấy!";
 };
 

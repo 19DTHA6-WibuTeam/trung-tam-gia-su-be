@@ -10,6 +10,10 @@ router
   .post(KhoaHocController.DangKyDay)
   .delete(KhoaHocController.HuyLichDay);
 router
+  .route("/TinhTrang/:MaKhoaHoc")
+  .all(fn.verifyAuth)
+  .post(KhoaHocController.DoiTinhTrang);
+router
   .route("/")
   .all(fn.verifyAuth)
   .get(KhoaHocController.getList)

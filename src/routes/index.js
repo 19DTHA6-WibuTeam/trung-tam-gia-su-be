@@ -10,6 +10,7 @@ router.use("/ThoiKhoaBieu", require("./ThoiKhoaBieu.route"));
 router.use("/HoaDon", require("./HoaDon.route"));
 router.use("/ChuyenMon", require("./ChuyenMon.route"));
 router.use("/Admin", require("./Admin.route"));
+router.use("/ThongKe", require("./ThongKe.route"));
 
 /* GET home page. */
 router.get("/", function (req, res, next) {

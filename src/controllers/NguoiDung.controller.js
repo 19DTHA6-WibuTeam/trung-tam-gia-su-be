@@ -7,6 +7,14 @@ const ReturnApi = require("../models/returnApi.model");
 
 let controller = {};
 
+controller.getList = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await NguoiDung.getList(req.query.LaGiaSu);
+  returnApi.success = true;
+  returnApi.data = a;
+  res.send(returnApi.toObject());
+};
+
 controller.getById = async (req, res) => {
   let returnApi = new ReturnApi();
   let { MaNguoiDung } = req.params;
@@ -76,6 +84,18 @@ controller.DoiMatKhau = async (req, res) => {
   if (typeof a == "string") returnApi.message = a;
   else {
     returnApi.success = true;
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
+controller.DangKyGiaSu = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await NguoiDung.DangKyGiaSu(req.params.MaNguoiDung, req.bypass);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đăng ký gia sư thành công!";
     returnApi.data = a;
   }
   res.send(returnApi.toObject());
