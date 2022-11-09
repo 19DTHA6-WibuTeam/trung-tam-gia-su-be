@@ -319,7 +319,7 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
         await conn.query(
           "INSERT INTO HoaDon(MaNguoiDung, MaKhoaHoc, LoaiPhieu, TinhTrang, SoTien, GhiChu, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
-            MaGiaSu,
+            b.MaHocSinh,
             MaKhoaHoc,
             1,
             0,
@@ -331,7 +331,7 @@ model.DangKyDay = async function (MaGiaSu, MaKhoaHoc) {
         await conn.query(
           "INSERT INTO HoaDon(MaNguoiDung, MaKhoaHoc, LoaiPhieu, TinhTrang, SoTien, GhiChu, NgayTao) VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
-            b.MaHocSinh,
+            MaGiaSu,
             MaKhoaHoc,
             2,
             0,
