@@ -37,7 +37,7 @@ fn.getMonday = function (d) {
   var new_day = new Date(d.setDate(diff));
   var date = new_day.getDate();
   date = date < 10 ? "0" + date : date;
-  var month = new_day.getMonth();
+  var month = new_day.getMonth() + 1;
   month = month < 10 ? "0" + month : month;
   return new_day.getFullYear() + "-" + month + "-" + date;
 };
