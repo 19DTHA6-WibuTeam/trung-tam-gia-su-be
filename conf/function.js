@@ -134,4 +134,103 @@ fn.deleteImg = async function (deleteHash) {
   return response.data;
 };
 
+fn.makeid = function (length) {
+  var result = "";
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+fn.sortObject = (obj) => {
+  var sorted = {};
+  var str = [];
+  var key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
+  return sorted;
+};
+
+fn.padTo2Digits = (num) => {
+  return num.toString().padStart(2, "0");
+};
+
+fn.payment = (returnUrl, order) => {
+  var tmnCode = process.env.VNPAY_TMP_CODE;
+  var secretKey = process.env.VNPAY_HASH_SECRET;
+  var vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+
+  var date = new Date();
+  var createDate =
+    date.getFullYear().toString() +
+    fn.padTo2Digits(date.getMonth() + 1) +
+    fn.padTo2Digits(date.getDate()) +
+    fn.padTo2Digits(date.getHours()) +
+    fn.padTo2Digits(date.getMinutes()) +
+    fn.padTo2Digits(date.getSeconds());
+
+  var locale = order.language;
+  if (!locale) locale = "vn";
+  var currCode = "VND";
+  var vnp_Params = {};
+  vnp_Params["vnp_Version"] = "2.1.0";
+  vnp_Params["vnp_Command"] = "pay";
+  vnp_Params["vnp_TmnCode"] = tmnCode;
+  // vnp_Params['vnp_Merchant'] = ''
+  vnp_Params["vnp_Locale"] = locale;
+  vnp_Params["vnp_CurrCode"] = currCode;
+  vnp_Params["vnp_TxnRef"] = order.MaHoaDon + "." + fn.makeid(10);
+  vnp_Params["vnp_OrderInfo"] = order.NoiDung;
+  vnp_Params["vnp_OrderType"] = "250000";
+  vnp_Params["vnp_Amount"] = order.SoTien * 100;
+  vnp_Params["vnp_ReturnUrl"] = returnUrl;
+  vnp_Params["vnp_IpAddr"] = order.ip;
+  vnp_Params["vnp_CreateDate"] = createDate;
+
+  vnp_Params = fn.sortObject(vnp_Params);
+
+  var querystring = require("qs");
+  var signData = querystring.stringify(vnp_Params, { encode: false });
+  var hmac = crypto.createHmac("sha512", secretKey);
+  var signed = hmac.update(new Buffer.from(signData, "utf-8")).digest("hex");
+  vnp_Params["vnp_SecureHash"] = signed;
+  vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+
+  return vnpUrl;
+};
+
+fn.verifyTransaction = (vnp_Params) => {
+  let returnApi = new ReturnApi();
+  var secureHash = vnp_Params["vnp_SecureHash"];
+
+  delete vnp_Params["vnp_SecureHash"];
+  delete vnp_Params["vnp_SecureHashType"];
+
+  vnp_Params = fn.sortObject(vnp_Params);
+  var querystring = require("qs");
+  var signData = querystring.stringify(vnp_Params, { encode: false });
+  var hmac = crypto.createHmac("sha512", process.env.VNPAY_HASH_SECRET);
+  var signed = hmac.update(new Buffer.from(signData, "utf-8")).digest("hex");
+
+  if (secureHash === signed) {
+    var orderId = vnp_Params["vnp_TxnRef"];
+    var vnpTranId = vnp_Params["vnp_TransactionNo"];
+    var rspCode = vnp_Params["vnp_ResponseCode"];
+    //Kiem tra du lieu co hop le khong, cap nhat trang thai don hang va gui ket qua cho VNPAY theo dinh dang duoi
+    returnApi.success = true;
+    returnApi.data = { orderId, vnpTranId, rspCode };
+  } else returnApi.message = "Fail checksum";
+  return returnApi.toObject();
+};
+
 module.exports = fn;

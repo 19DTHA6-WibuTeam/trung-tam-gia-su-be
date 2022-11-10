@@ -13,6 +13,14 @@ router
   .route("/KhoaHoc/:MaKhoaHoc")
   .all(fn.verifyAuth)
   .get(HoaDonController.getByMKH);
+router
+  .route("/XacNhanThanhToan/:MaHoaDon")
+  .all(fn.verifyAuth)
+  .get(HoaDonController.XacNhanThanhToan);
+router
+  .route("/ThanhToan/:MaHoaDon")
+  .all(fn.verifyAuth)
+  .post(HoaDonController.ThanhToan);
 router.route("/:MaHoaDon").all(fn.verifyAuth).get(HoaDonController.getById);
 
 module.exports = router;

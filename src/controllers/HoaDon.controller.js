@@ -16,6 +16,25 @@ controller.getList = async (req, res) => {
 controller.getById = async (req, res) => {
   let returnApi = new ReturnApi();
   let data = await HoaDon.getById(req.params.MaHoaDon);
+  if (data && data.TinhTrang == 0)
+    data.LinkThanhToan = fn.payment(
+      req.query.returnUrl ||
+        req.protocol +
+          "://" +
+          req.get("host") +
+          "/XacNhanThanhToan/" +
+          data.MaHoaDon,
+      {
+        MaHoaDon: data.MaNguoiDung + "." + data.MaHoaDon,
+        SoTien: data.SoTien,
+        NoiDung: data.GhiChu,
+        ip:
+          req.headers["x-forwarded-for"] ||
+          req.connection.remoteAddress ||
+          req.socket.remoteAddress ||
+          req.connection.socket.remoteAddress,
+      }
+    );
   returnApi.success = true;
   returnApi.data = data;
   res.send(returnApi.toObject());
@@ -34,6 +53,34 @@ controller.getByMKH = async (req, res) => {
   let data = await HoaDon.getByMKH(req.params.MaKhoaHoc);
   returnApi.success = true;
   returnApi.data = data;
+  res.send(returnApi.toObject());
+};
+
+controller.XacNhanThanhToan = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await HoaDon.XacNhanThanhToan(req.params.MaHoaDon, req.query);
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đã xác nhận thanh toán thành công.";
+    returnApi.data = a;
+  }
+  res.send(returnApi.toObject());
+};
+
+controller.ThanhToan = async (req, res) => {
+  let returnApi = new ReturnApi();
+  let a = await HoaDon.ThanhToan(
+    req.params.MaHoaDon,
+    req.query.TinhTrang,
+    req.bypass
+  );
+  if (typeof a == "string") returnApi.message = a;
+  else {
+    returnApi.success = true;
+    returnApi.message = "Đã xác nhận thanh toán thành công.";
+    returnApi.data = a;
+  }
   res.send(returnApi.toObject());
 };
 
