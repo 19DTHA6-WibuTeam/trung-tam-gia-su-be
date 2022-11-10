@@ -17,24 +17,12 @@ controller.getById = async (req, res) => {
   let returnApi = new ReturnApi();
   let data = await HoaDon.getById(req.params.MaHoaDon);
   if (data && data.TinhTrang == 0)
-    data.LinkThanhToan = fn.payment(
-      req.query.returnUrl ||
-        req.protocol +
-          "://" +
-          req.get("host") +
-          "/XacNhanThanhToan/" +
-          data.MaHoaDon,
-      {
-        MaHoaDon: data.MaNguoiDung + "." + data.MaHoaDon,
-        SoTien: data.SoTien,
-        NoiDung: data.GhiChu,
-        ip:
-          req.headers["x-forwarded-for"] ||
-          req.connection.remoteAddress ||
-          req.socket.remoteAddress ||
-          req.connection.socket.remoteAddress,
-      }
-    );
+    data.LinkThanhToan = fn.payment(req.query.returnUrl, {
+      MaHoaDon: data.MaNguoiDung + "." + data.MaHoaDon,
+      SoTien: data.SoTien,
+      NoiDung: data.GhiChu,
+      ip: req.query.ip,
+    });
   returnApi.success = true;
   returnApi.data = data;
   res.send(returnApi.toObject());

@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const querystring = require("qs");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const { ImgurClient } = require("imgur");
@@ -199,7 +200,6 @@ fn.payment = (returnUrl, order) => {
 
   vnp_Params = fn.sortObject(vnp_Params);
 
-  var querystring = require("qs");
   var signData = querystring.stringify(vnp_Params, { encode: false });
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(new Buffer.from(signData, "utf-8")).digest("hex");
@@ -217,7 +217,6 @@ fn.verifyTransaction = (vnp_Params) => {
   delete vnp_Params["vnp_SecureHashType"];
 
   vnp_Params = fn.sortObject(vnp_Params);
-  var querystring = require("qs");
   var signData = querystring.stringify(vnp_Params, { encode: false });
   var hmac = crypto.createHmac("sha512", process.env.VNPAY_HASH_SECRET);
   var signed = hmac.update(new Buffer.from(signData, "utf-8")).digest("hex");

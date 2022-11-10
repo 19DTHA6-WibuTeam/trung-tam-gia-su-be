@@ -1,4 +1,5 @@
 const moment = require("moment");
+const KhoaHoc = require("../models/KhoaHoc.model");
 const fn = require("../../conf/function");
 const { pool, connection } = require("../../database/mysql");
 
@@ -16,14 +17,20 @@ model.getList = function () {
   });
 };
 
-model.getById = function (MaHoaDon) {
+model.getById = async function (MaHoaDon) {
   return new Promise((resolve) => {
     pool.query(
-      "SELECT HD.*, MH.TenMonHoc, KH.NgayBatDau, KH.SoTien AS SoTienMotBuoi, KH.SoTuan, COUNT(HD.MaHoaDon) AS SoBuoi, ND.HoTen, ND.Email, ND.SDT FROM HoaDon HD LEFT JOIN NguoiDung ND ON HD.MaNguoiDung = ND.MaNguoiDung LEFT JOIN KhoaHoc KH ON HD.MaKhoaHoc = KH.MaKhoaHoc LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc LEFT JOIN ThoiKhoaBieu TKB ON KH.MaKhoaHoc = TKB.MaKhoaHoc WHERE HD.MaHoaDon = ? GROUP BY HD.MaHoaDon",
+      "SELECT HD.*, ND.HoTen, ND.Email, ND.SDT FROM HoaDon HD LEFT JOIN NguoiDung ND ON HD.MaNguoiDung = ND.MaNguoiDung WHERE HD.MaHoaDon = ? GROUP BY HD.MaHoaDon",
       MaHoaDon,
-      (err, results) => {
+      async (err, results) => {
         if (err) console.log(err);
-        resolve(results.length > 0 ? results[0] : {});
+        // resolve(results.length > 0 ? results[0] : {});
+        if (results.length) {
+          let result = results[0];
+          if (result.MaKhoaHoc)
+            result.KhoaHoc = await KhoaHoc.getById(result.MaKhoaHoc);
+          resolve(result);
+        } else resolve({});
       }
     );
   });
