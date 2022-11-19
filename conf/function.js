@@ -107,7 +107,7 @@ fn.verifyAuth = async function (req, res, next) {
 
 fn.Offset = function (page = 1, limit = process.env.DATA_PER_PAGE) {
   if (limit == 0) return "";
-  if (page < 1 || !is_numeric(page)) page = 1;
+  if (page < 1 || isNaN(page)) page = 1;
   $offset = " LIMIT " + (page - 1) * limit + "," + limit;
   return $offset;
 };

@@ -9,7 +9,7 @@ let controller = {};
 
 controller.getList = async (req, res) => {
   let returnApi = new ReturnApi();
-  let a = await NguoiDung.getList(req.query.LaGiaSu);
+  let a = await NguoiDung.getList(req.query.LaGiaSu, req.query);
   returnApi.success = true;
   returnApi.data = a;
   res.send(returnApi.toObject());

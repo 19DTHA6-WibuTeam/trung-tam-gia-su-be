@@ -5,13 +5,20 @@ const { pool } = require("../../database/mysql");
 
 let model = {};
 
-model.getList = function (LaGiaSu) {
-  let sql = "SELECT * FROM NguoiDung ORDER BY MaNguoiDung DESC";
-  if (LaGiaSu)
-    sql =
-      "SELECT * FROM NguoiDung WHERE LaGiaSu = " +
-      pool.escape(LaGiaSu) +
-      " ORDER BY MaNguoiDung DESC";
+model.getList = function (LaGiaSu, search = {}) {
+  let sql = "SELECT * FROM NguoiDung ",
+    sql_search = "";
+  if (LaGiaSu) sql_search += "LaGiaSu = " + pool.escape(LaGiaSu) + " AND ";
+  if (search) {
+    let { HoTen, SDT } = search;
+    if (HoTen)
+      sql_search += "MATCH (HoTen) AGAINST (" + pool.escape(HoTen) + ") AND ";
+    if (SDT) sql_search += "SDT = " + pool.escape(SDT) + " AND ";
+  }
+  if (sql_search)
+    sql += "WHERE " + sql_search.substring(0, sql_search.length - 5);
+
+  sql += " ORDER BY MaNguoiDung DESC";
   return new Promise((resolve) => {
     pool.query(sql, (err, results) => {
       if (err) console.log(err);

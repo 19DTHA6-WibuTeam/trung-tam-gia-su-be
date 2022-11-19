@@ -51,9 +51,18 @@ model.getSummary = async function () {
       TongTien = 0;
     TongTien = c[0].SoTien - c[1].SoTien;
 
+    let d = await conn.query(
+      "SELECT COUNT(*) AS SoLuong FROM HoaDon WHERE LoaiPhieu = 1 AND TinhTrang = 0"
+    );
+
     await conn.commit();
     await conn.release();
-    return { KhoaHoc: kh, NguoiDung: nd, DoanhThu: TongTien };
+    return {
+      KhoaHoc: kh,
+      NguoiDung: nd,
+      DoanhThu: TongTien,
+      HoaDon: { ChuaThanhToan: d[0].SoLuong },
+    };
   } catch (err) {
     console.log(err);
     await conn.rollback();

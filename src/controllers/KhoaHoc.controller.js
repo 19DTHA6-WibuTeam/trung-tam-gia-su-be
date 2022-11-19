@@ -16,7 +16,7 @@ let controller = {};
 controller.getList = async (req, res) => {
   let returnApi = new ReturnApi();
   let { k, v } = req.query;
-  let a = await KhoaHoc.getList(k, v);
+  let a = await KhoaHoc.getList(k, v, req.query);
   returnApi.success = true;
   returnApi.data = a;
   res.send(returnApi.toObject());

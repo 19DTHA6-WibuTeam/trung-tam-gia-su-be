@@ -18,12 +18,27 @@ model.getTKB = function (MaKhoaHoc) {
   });
 };
 
-model.getList = function (key = null, value = null) {
+model.getList = function (key = null, value = null, search = {}) {
   let sql =
-    "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc ORDER BY MaKhoaHoc DESC";
-  if (key && value)
-    sql =
-      "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc WHERE ?? = ? ORDER BY MaKhoaHoc DESC";
+      "SELECT KH.*, MH.TenMonHoc FROM KhoaHoc KH LEFT JOIN MonHoc MH ON KH.MaMonHoc = MH.MaMonHoc ",
+    { HoTen, SDT, TinhTrang, orderby_ID, pn } = search;
+  if (key && value) sql += "WHERE ?? = ?";
+  else if (search) {
+    sql_search = "";
+    if (HoTen)
+      sql_search +=
+        "MATCH (KH.HoTen) AGAINST (" + pool.escape(HoTen) + ") AND ";
+    if (SDT) sql_search += "KH.SDT = " + pool.escape(SDT) + " AND ";
+    if (TinhTrang)
+      sql_search += "KH.TinhTrang = " + pool.escape(TinhTrang) + " AND ";
+
+    if (sql_search)
+      sql += "WHERE " + sql_search.substring(0, sql_search.length - 5);
+  }
+  sql +=
+    " ORDER BY MaKhoaHoc " +
+    (orderby_ID == "ASC" ? "ASC" : "DESC") +
+    fn.Offset(pn);
   return new Promise((resolve) => {
     pool.query(sql, [key, value], async (err, results) => {
       if (err) console.log(err);
