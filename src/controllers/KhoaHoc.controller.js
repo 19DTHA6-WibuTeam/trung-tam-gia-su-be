@@ -95,7 +95,12 @@ controller.HuyLichDay = async (req, res) => {
 
 controller.DoiTinhTrang = async (req, res) => {
   let returnApi = new ReturnApi();
-  let a = await KhoaHoc.DoiTinhTrang(req.MaNguoiDung, req.params.MaKhoaHoc);
+  let a = await KhoaHoc.DoiTinhTrang(
+    req.MaNguoiDung,
+    req.params.MaKhoaHoc,
+    req.body.TinhTrang,
+    req.bypass
+  );
   if (typeof a == "string") returnApi.message = a;
   else {
     returnApi.success = true;

@@ -1,3 +1,4 @@
+const axios = require("axios");
 const jsonwebtoken = require("jsonwebtoken");
 const moment = require("moment");
 const fn = require("../../conf/function");
@@ -98,10 +99,16 @@ model.register = function (body) {
 
 model.update = async function (MaNguoiDung, body, files = null) {
   let { HoTen, NgaySinh, GioiTinh, DiaChi, SDT, Email, MatKhau } = body,
-    Avatar = "";
+    Avatar = "",
+    id_card_img = "";
 
   let user = await model.getById(MaNguoiDung);
   if (user) {
+    let id_card =
+      user.id_card == null
+        ? { image: null, data: {} }
+        : JSON.parse(user.id_card);
+
     let sql = "UPDATE NguoiDung SET ",
       isChanged = false;
     if (HoTen) {
@@ -134,24 +141,65 @@ model.update = async function (MaNguoiDung, body, files = null) {
     }
 
     if (files) {
-      console.log("Upload avatar.");
-      let avatar_temp = files.avatar;
-      if (avatar_temp.mimetype.includes("image/")) {
-        if (avatar_temp.size < 2 * 1024 * 1024) {
-          let file_name =
-            "./temp/" +
-            fn.hashMD5(avatar_temp.name + MaNguoiDung) +
-            "." +
-            avatar_temp.mimetype.replace("image/", "");
-          avatar_temp.mv(file_name);
-          let img = await fn.uploadImg(file_name, true, user.Avatar);
-          if (typeof img.link == "string") Avatar = img.link;
-        } else return "File ảnh không được quá 2MB.";
-      } else return "File ảnh không hợp lệ!";
+      console.log("Upload image.");
+      let avatar_temp = files.avatar,
+        id_card_temp = files.id_card;
+      if (avatar_temp) {
+        if (avatar_temp.mimetype.includes("image/")) {
+          if (avatar_temp.size < 2 * 1024 * 1024) {
+            let file_name =
+              "./temp/" +
+              fn.hashMD5(avatar_temp.name + MaNguoiDung) +
+              "." +
+              avatar_temp.mimetype.replace("image/", "");
+            avatar_temp.mv(file_name);
+            let img = await fn.uploadImg(file_name, true, user.Avatar);
+            if (typeof img.link == "string") Avatar = img.link;
+          } else return "File ảnh không được quá 2MB.";
+        } else return "File ảnh không hợp lệ!";
+      } else {
+        if (id_card_temp.mimetype.includes("image/")) {
+          if (id_card_temp.size < 2 * 1024 * 1024) {
+            let file_name =
+              "./temp/" +
+              fn.hashMD5(id_card_temp.name + MaNguoiDung) +
+              "." +
+              id_card_temp.mimetype.replace("image/", "");
+            id_card_temp.mv(file_name);
+            let img = await fn.uploadImg(file_name, true, id_card.image);
+            if (typeof img.link == "string") id_card_img = img.link;
+          } else return "File ảnh không được quá 2MB!.";
+        } else return "File ảnh không hợp lệ!.";
+      }
     }
 
     if (Avatar) {
       sql += "Avatar = " + pool.escape(Avatar) + ",";
+      isChanged = true;
+    }
+    if (id_card_img) {
+      id_card.image = id_card_img;
+      var info_card;
+      try {
+        info_card = await axios.get(
+          "http://extract-id-card-api.phatnef.me/extract?lp=" + id_card_img
+        );
+        info_card = info_card.data;
+      } catch (err) {
+        info_card = err.response.data;
+      }
+      id_card.data = info_card;
+      if (info_card) {
+        var regex_ = /(['._-]+)/gi;
+        for (let i in info_card) {
+          info_card[i] = info_card[i]
+            .replace(regex_, "")
+            .replace("\n", "")
+            .replace("\f", "")
+            .trim();
+        }
+      }
+      sql += "id_card = " + pool.escape(JSON.stringify(id_card)) + ",";
       isChanged = true;
     }
     if (isChanged) {

@@ -399,9 +399,9 @@ model.HuyLichDay = async function (MaGiaSu, MaKhoaHoc, deleteHoaDon = false) {
   return "Không tồn tại khoá học.";
 };
 
-model.DoiTinhTrang = async function (MaGiaSu, MaKhoaHoc) {
+model.DoiTinhTrang = async function (MaGiaSu, MaKhoaHoc, TinhTrang, bypass) {
   let a = await NguoiDungModel.getById(MaGiaSu);
-  if (a.LaGiaSu == 0) return "Bạn không phải là gia sư.";
+  if (a.LaGiaSu == 0 && !bypass) return "Bạn không có quyền thay đổi.";
   let b = await model.getById(MaKhoaHoc);
   if (b) {
     let conn = await connection();
@@ -410,7 +410,7 @@ model.DoiTinhTrang = async function (MaGiaSu, MaKhoaHoc) {
 
       let c = await conn.query(
         "UPDATE KhoaHoc SET TinhTrang = ? WHERE MaKhoaHoc = ?",
-        [b.TinhTrang == 1 ? 0 : 1, MaKhoaHoc]
+        [TinhTrang, MaKhoaHoc]
       );
 
       await conn.commit();
