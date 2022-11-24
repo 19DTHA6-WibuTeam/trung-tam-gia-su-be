@@ -190,7 +190,7 @@ model.update = async function (MaNguoiDung, body, files = null) {
       }
       id_card.data = info_card;
       if (info_card) {
-        var regex_ = /(['._-]+)/gi;
+        var regex_ = /(['":`._-]+)/gi;
         for (let i in info_card) {
           info_card[i] = info_card[i]
             .replace(regex_, "")
